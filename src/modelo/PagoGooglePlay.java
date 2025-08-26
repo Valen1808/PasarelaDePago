@@ -10,13 +10,10 @@ import javax.swing.JOptionPane;
  *
  * @author norqu
  */
-public class PagoBitCoin implements Pagos{
-    public String direccionDestinatario, tarifa;
-    public double monto;
-    
+public class PagoGooglePlay implements Pagos{
+    public boolean confirmación;
     @Override
     public void crearPago(){
-        JOptionPane.showMessageDialog(null, "Pago con bitcoin");
+        JOptionPane.showMessageDialog(null, "Pago por Google Play");
     }
 }
-

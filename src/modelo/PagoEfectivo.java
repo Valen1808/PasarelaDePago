@@ -4,13 +4,34 @@
  */
 package modelo;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author norqu
  */
 public class PagoEfectivo implements Pagos{
+    public double billeteRecibido;
+    public double valorDeLaCompra;
+    public double devuelta;
+
+    public PagoEfectivo() {
+        
+    }
+
+    public PagoEfectivo(double billeteRecibido) {
+        this.billeteRecibido = billeteRecibido;
+        crearPago();
+    }
+
+    public void setBilleteRecibido(double billeteRecibido) {
+        this.billeteRecibido = billeteRecibido;
+    }
+    public double getBilleteRecibido() {
+        return billeteRecibido;
+    }
     @Override
-    public void crearPago(){
-    
+    public void crearPago() {
+        System.out.println("valor recibido: "+getBilleteRecibido());
     }
 }

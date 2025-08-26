@@ -8,6 +8,6 @@ public enum TipoDePago {
     CONSIGNACION,
     TRASFERENCIA,
     BIT_CION,
-    APLEE_PLAY,
-    GOOCLE_PAY
+    APPLE_PLAY,
+    GOOGLE_PAY
 }

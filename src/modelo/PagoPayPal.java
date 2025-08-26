@@ -4,15 +4,17 @@
  */
 package modelo;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author norqu
  */
 public class PagoPayPal implements Pagos{
-
+    public String n;
     @Override
     public void crearPago() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        JOptionPane.showMessageDialog(null, "Pafo por PayPal");
     }
     
 }

@@ -40,4 +40,10 @@ public class PagoGooglePlay implements ProcesoDePago{
             return -1;  
         } 
     }
+
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: Google Play";
+    }
+
 }

@@ -63,4 +63,9 @@ public class PagoConsignacion implements ProcesoDePago{
         }
         
     }
+
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: Consignación";
+    }
 }

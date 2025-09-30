@@ -37,5 +37,12 @@ public class PagoApplePay implements ProcesoDePago{
         }
         
     }
+
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: ApplePay";
+    }
     
+    
+
 }

@@ -8,7 +8,6 @@ package modelo;
  *
  * @author norqu
  */
-public interface ProcesoDePago {
-    public int pagar(double monto); 
-    public String factura();
+public interface Crud_Historia<H> {
+    public int registrarH(H h);
 }

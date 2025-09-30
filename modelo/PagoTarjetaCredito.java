@@ -40,11 +40,16 @@ public class PagoTarjetaCredito implements ProcesoDePago{
     @Override
     public int pagar(double monto) {
         if(this.saldo>monto){
-            JOptionPane.showMessageDialog(null, "Pago con Tarjeta de Credito esitoso");
+            JOptionPane.showMessageDialog(null, "Pago con Tarjeta de Credito exitoso");
             return 1;
         }else{
             JOptionPane.showMessageDialog(null, "Saldo insuficiente");
             return -1;
         }
+    }
+
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: Tarjeto de Credito";
     }
 }

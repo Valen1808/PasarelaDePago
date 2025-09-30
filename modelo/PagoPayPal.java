@@ -48,11 +48,17 @@ public class PagoPayPal implements ProcesoDePago{
     @Override
     public int pagar(double monto) {
         if(this.saldo>monto){
-            JOptionPane.showMessageDialog(null, "Pago con PayPal esitoso");
+            JOptionPane.showMessageDialog(null, "Pago con PayPal exitoso");
             return 1;
         }else{
             JOptionPane.showMessageDialog(null, "Saldo insuficiente");
             return -1;
         }
     } 
+
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: PayPal";
+    }
+
 }

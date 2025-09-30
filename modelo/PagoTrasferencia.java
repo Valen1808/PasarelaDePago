@@ -96,4 +96,9 @@ public class PagoTrasferencia implements ProcesoDePago{
         }
     }
     
+    @Override
+    public String factura() {
+        return "METODO DE PAGO: Transferencia";
+    }
+    
 }

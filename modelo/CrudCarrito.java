@@ -77,7 +77,9 @@ public class CrudCarrito implements CrudCrr<Carrito>{
                 ps.setInt(4, c.getCantidad());
                 int f=ps.executeUpdate();
                 if(f>0){
-                    JOptionPane.showMessageDialog(null, "Se agrego un producto del carrito");
+                    
+                    JOptionPane.showMessageDialog(null, "Producto agregado: " +nombreProducto(c.getId_producto()) );
+
                 }else{
                     JOptionPane.showMessageDialog(null, "No se agrego un producto del carrito");
                 }
@@ -97,7 +99,7 @@ public class CrudCarrito implements CrudCrr<Carrito>{
                 ps.setInt(1, idProducto);
                 int f=ps.executeUpdate();
                 if(f>0){
-                    JOptionPane.showMessageDialog(null, "Se aumento la cantidad");
+                    JOptionPane.showMessageDialog(null, "Se aumento la cantidad del producto: "+nombreProducto(c.getId_producto()));
                 }else{
                     JOptionPane.showMessageDialog(null, "No se aumento la cantidad");
                 }
@@ -126,7 +128,7 @@ public class CrudCarrito implements CrudCrr<Carrito>{
                 return 0;
         }
     }
-
+    
     @Override
     public int eliminarProducto(int idpersona, int idProducto) {
         String sql="DELETE FROM carrito_compras WHERE id_usuario=? AND id_producto=?";
@@ -134,11 +136,13 @@ public class CrudCarrito implements CrudCrr<Carrito>{
             Connection con = Conexion.getInstance().getConnection();
             PreparedStatement ps= con.prepareStatement(sql);
         ){
+            String nombreProducto=nombreProducto(idProducto);
             ps.setInt(1, idpersona);
             ps.setInt(2, idProducto);
+            
             int f=ps.executeUpdate();
                 if(f>0){
-                    JOptionPane.showMessageDialog(null, "Se elimino un producto del carrito");
+                    JOptionPane.showMessageDialog(null, "Se elimino: "+nombreProducto+" del carrito");
                 }else{
                     JOptionPane.showMessageDialog(null, "No se elimino un producto del carrito");
                 }
@@ -149,6 +153,27 @@ public class CrudCarrito implements CrudCrr<Carrito>{
             return 0;
         }
         
+    }
+    
+    public String nombreProducto(int id){
+        String nombreProducto = "";
+        String sqlNombre = "SELECT nombre_producto FROM productos WHERE id_producto = ?";
+        try ( Connection con = Conexion.getInstance().getConnection();
+                PreparedStatement ps = con.prepareStatement(sqlNombre);
+                
+            ) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    nombreProducto = rs.getString("nombre_producto");
+                }
+            }
+            return nombreProducto;
+        }catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.toString(), "Error de Consulta(consultar nombre producto)", JOptionPane.ERROR_MESSAGE);
+            return "";
+        }
+
     }
     
 }

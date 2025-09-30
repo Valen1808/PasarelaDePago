@@ -3,6 +3,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,6 +19,8 @@ import modelo.ProcesadorDePago;
 import modelo.Factory;
 import modelo.ProcesoDePago;
 import modelo.TipoDePago;
+import modelo.Historial_Compras;
+import modelo.HistoriaDao;
 
 public class Controlador implements ActionListener{
     public Vista vista=new Vista();
@@ -26,6 +29,9 @@ public class Controlador implements ActionListener{
     CrudCarrito cc= new CrudCarrito();
     private Factory factory;
     private ProcesadorDePago procesador;
+    String medtodoPagoFactura="";
+    String factura= "", nombreMetodo="";
+    int metodoPago=-1, idmetodo=-1, idpersona=1 ;
     
     DefaultTableModel modelo=new DefaultTableModel();
     DefaultTableModel modelo2=new DefaultTableModel();
@@ -45,16 +51,14 @@ public class Controlador implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource()==vista.botonPago && !vista.validarCampos()){
-           //JOptionPane.showMessageDialog(null, "Vlidacion: "+vista.validarCampos());    
-            
-           boolean pagoExitoso= metodoDePago();
-           //JOptionPane.showMessageDialog(null, "Pago exi "+pagoExitoso);
            if(carritoVacio()){
                JOptionPane.showMessageDialog(null, "Carrito vacio");
            }else{
+              boolean pagoExitoso= metodoDePago();  
             if(pagoExitoso){
                  double totalCompra = calcularTotal();
-                 JOptionPane.showMessageDialog(null, Factura(totalCompra));
+                 JOptionPane.showMessageDialog(null, Factura(totalCompra, factura));
+                 setHistorial(1, idmetodo);
                  disminurCantidad();
                  cc.reiniciarCarrito(1);
                  limpiarCarrito();
@@ -63,8 +67,6 @@ public class Controlador implements ActionListener{
                  getListarProductos(vista.tabla);
              }
            }
-            
-            
         }
     }
     
@@ -82,6 +84,7 @@ public class Controlador implements ActionListener{
         }
         vista.tabla.setModel(modelo);
     }
+    
     public void getListarCarrito(JTable tabla) {
         modelo2 = (DefaultTableModel) tabla.getModel();
 
@@ -110,7 +113,6 @@ public class Controlador implements ActionListener{
                         int id = Integer.parseInt(vista.tabla.getValueAt(fila, 0).toString());
                         String nombreProducto = vista.tabla.getValueAt(fila, 1).toString();
                         double precio = Double.parseDouble(vista.tabla.getValueAt(fila, 2).toString());
-                        //JOptionPane.showMessageDialog(null,"id p: " + id +"\nProducto: " + nombreProducto +"\nPrecio: " + precio +"\nCantidad: " + 1);
                             c.setId_usuario(1); 
                             c.setId_producto(id);
                             c.setCantidad(1);
@@ -133,7 +135,7 @@ public class Controlador implements ActionListener{
                 if(e.getClickCount()==2){
                     int fila = vista.carrito.rowAtPoint(e.getPoint());
                     if(fila!=-1){
-                        int idpersona = Integer.parseInt(vista.carrito.getValueAt(fila, 0).toString());
+                        idpersona = Integer.parseInt(vista.carrito.getValueAt(fila, 0).toString());
                         int idproducto = Integer.parseInt(vista.carrito.getValueAt(fila, 1).toString());
                         cc.eliminarProducto(idpersona, idproducto);
                         limpiarCarrito();
@@ -150,6 +152,7 @@ public class Controlador implements ActionListener{
             i=i-1;
         }
     }
+    
     public void limpiarProductos(){
         for(int i=0;i<vista.tabla.getRowCount();i++){
             modelo.removeRow(i);
@@ -174,11 +177,13 @@ public class Controlador implements ActionListener{
         return -1;
     }
     
-    public String Factura(double precioTotal){
+    public String Factura(double precioTotal, String metodoPago){
         String factura="FACTURA \n";
          List<Carrito> lista = cc.mostrarCarrito();
         Object[] object = new Object[6];
-
+        LocalDate fechaCompra = LocalDate.now();
+        
+        factura+="Fecha: "+fechaCompra;
         for (int indice = 0; indice < lista.size(); indice++) {
             factura+="\nProducto: "+lista.get(indice).getNombreproducto();
             factura+="\nPrecio: "+lista.get(indice).getPrecio();
@@ -188,7 +193,8 @@ public class Controlador implements ActionListener{
         }
         
         factura+="\n";
-        factura+="\nPrecio Total: "+precioTotal;
+        factura+="\nPrecio Total: "+precioTotal+"\n";
+        factura+="\n"+metodoPago;
         return factura;
     }
     
@@ -210,9 +216,11 @@ public class Controlador implements ActionListener{
     
     public double calcularTotal(){
         double totalCompra=0;
+        String nombre="";
         int idProducto, cantidad, validacion;
         List<Carrito> carr = cc.mostrarCarrito();
         for (int indice = 0; indice < carr.size(); indice++) {
+            nombre=carr.get(indice).getNombreproducto();
             idProducto=carr.get(indice).getId_producto();
             cantidad= carr.get(indice).getCantidad();
             validacion=validarcantidad(idProducto, cantidad);
@@ -220,7 +228,7 @@ public class Controlador implements ActionListener{
                 totalCompra += carr.get(indice).getPrecio()*carr.get(indice).getCantidad();
             }else{
                 totalCompra += carr.get(indice).getPrecio()*validacion;
-                JOptionPane.showMessageDialog(null,"Cantidad insufiente, cantidad disponible"+ validacion );
+                JOptionPane.showMessageDialog(null,"Cantidad insufiente del producto "+nombre+", cantidad disponible: "+ validacion );
             }
         }
         return totalCompra;
@@ -235,12 +243,30 @@ public class Controlador implements ActionListener{
         }
     }
     
+    public void setHistorial(int idUsuario, int metodo){
+        HistoriaDao hd= new HistoriaDao();
+        
+        List<Carrito> lista = cc.mostrarCarrito();
+
+        for (int indice = 0; indice < lista.size(); indice++) {
+            Historial_Compras hist= new Historial_Compras();
+            hist.setId_usuario(idUsuario);
+            hist.setId_producto(lista.get(indice).getId_producto());
+            hist.setCantidad(lista.get(indice).getCantidad());
+            hist.setPrecio_total(lista.get(indice).getPrecio()*lista.get(indice).getCantidad());
+            hist.setId_metodo_pago(metodo);
+            hd.registrarH(hist);
+        }
+        
+    }
+    
     public boolean metodoDePago() {
             String opcion = (String) vista.seleccionPago.getSelectedItem();
             double totalCompra = calcularTotal();
+            HistoriaDao hd = new HistoriaDao();
             //JOptionPane.showMessageDialog(null, "Seleccionaste: " + opcion);
 
-            double saldo = saldo(); // saldo de la compra
+            double saldo = saldo(); // saldo de la compra metodo
             boolean pagoExitoso = false;
 
             switch (opcion) {
@@ -255,11 +281,13 @@ public class Controlador implements ActionListener{
                 factory.setSaldo(saldo);
 
                 ProcesoDePago pagoCredito = factory.obtenerPago(TipoDePago.TARJETA_CREDITO);
-
+                
                 if (pagoCredito.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
-
+                idmetodo = hd.buscarMetodo("Tarjeta Credito");
+                factura= pagoCredito.factura();
+                //idmetodo=3;
                 break;
 
             case "Tarjeta de Débito":
@@ -277,6 +305,9 @@ public class Controlador implements ActionListener{
                 if (pagoDebito.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura= pagoDebito.factura();
+                idmetodo = hd.buscarMetodo("Tarjeta Debito");
+                //idmetodo=2;
                 break;
 
             case "Efectivo":
@@ -288,8 +319,11 @@ public class Controlador implements ActionListener{
                 if (pagoEfectivo.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura= pagoEfectivo.factura();
+                idmetodo = hd.buscarMetodo("Efectivo");
+                //idmetodo=1;
                 break;
-
+                
             case "Paypal":
                 String email = vista.email.getText(); // email
                 int documento = Integer.parseInt(vista.numidenti.getText()); // documento
@@ -304,6 +338,9 @@ public class Controlador implements ActionListener{
                 if (pagoPaypal.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                 factura= pagoPaypal.factura();
+                  idmetodo = hd.buscarMetodo("PayPal");
+                 //idmetodo=5;
                 break;
 
             case "Transferencia":
@@ -318,7 +355,11 @@ public class Controlador implements ActionListener{
                 if (pagoTransferencia.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura= pagoTransferencia.factura();
+                idmetodo = hd.buscarMetodo("Transferencia");
+                //idmetodo=4;
                 break;
+                
 
             case "Apple Pay":
                 boolean confirmacionApple = vista.appleConfirmado; // confirmacion Apple Pay
@@ -331,6 +372,8 @@ public class Controlador implements ActionListener{
                 if (pagoApple.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura=pagoApple.factura();
+                idmetodo = hd.buscarMetodo("Apple Pay");
                 break;
 
             case "Google Pay":
@@ -343,6 +386,9 @@ public class Controlador implements ActionListener{
                 if (pagoGoogle.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura= pagoGoogle.factura();
+                idmetodo = hd.buscarMetodo("Google Pay");
+                //idmetodo=9;
                 break;
 
             case "Criptomonedas":
@@ -355,6 +401,9 @@ public class Controlador implements ActionListener{
                 if (pagoCripto.pagar(totalCompra) == 1) {
                     pagoExitoso = true;
                 }
+                factura= pagoCripto.factura();
+                idmetodo = hd.buscarMetodo("Bitcoin");
+                //idmetodo=7;
                 break;
 
             default:
@@ -363,7 +412,6 @@ public class Controlador implements ActionListener{
         return pagoExitoso;
     }
 
-    
     public double saldo(){ 
         return 100099.09;
     }
